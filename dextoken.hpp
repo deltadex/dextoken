@@ -56,18 +56,18 @@ namespace eosio {
             };
 
             // @abi table stat i64
-            struct currency_stats {
+            struct currencystat {
                 asset supply;
                 asset max_supply;
                 account_name issuer;
 
                 uint64_t primary_key()const { return supply.symbol.name(); }
 
-                EOSLIB_SERIALIZE (currency_stats, (supply)(max_supply)(issuer));
+                EOSLIB_SERIALIZE (currencystat, (supply)(max_supply)(issuer));
             };
 
             typedef eosio::multi_index<N(accounts), account> accounts;
-            typedef eosio::multi_index<N(stat), currency_stats> stats;
+            typedef eosio::multi_index<N(stat), currencystat> stats;
 
             void do_issue(account_name to, asset quantity, string memom, bool pay_ram = true);
             void do_transfer(account_name from, account_name to, asset quantity, string memo, bool pay_ram = true);
