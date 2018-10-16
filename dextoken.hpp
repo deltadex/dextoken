@@ -15,69 +15,84 @@ namespace eosiosystem {
 
 namespace eosio {
 
-   using std::string;
+    using std::string;
 
-   class dextoken : public contract {
-      public:
-         dextoken( account_name self ):contract(self){}
+    class dextoken : public contract {
+        public:
+            dextoken(account_name self):contract(self){}
 
-         void create( account_name issuer,
-                      asset        maximum_supply);
+            // @abi action
+            void create(account_name issuer, asset maximum_supply);
 
-         void issue( account_name to, asset quantity, string memo );
-         void issuefree( account_name to, asset quantity, string memo );
-         void burn( account_name from, asset quantity, string memo );
-         void signup( account_name owner, asset quantity);
-         void transfer( account_name from, account_name to, asset quantity, string memo );
-         void transferfree( account_name from, account_name to, asset quantity, string memo );
+            // @abi action
+            void issue(account_name to, asset quantity, string memo);
 
-         inline asset get_supply( symbol_name sym )const;
-         inline asset get_balance( account_name owner, symbol_name sym )const;
+            // @abi action
+            void issuefree(account_name to, asset quantity, string memo);
 
-      private:
-         struct account {
-            asset    balance;
+            // @abi action
+            void burn(account_name from, asset quantity, string memo);
 
-            uint64_t primary_key()const { return balance.symbol.name(); }
-         };
+            // @abi action
+            void signup(account_name owner, asset quantity);
 
-         struct currency_stats {
-            asset          supply;
-            asset          max_supply;
-            account_name   issuer;
+            // @abi action
+            void transfer(account_name from, account_name to, asset quantity, string memo);
 
-            uint64_t primary_key()const { return supply.symbol.name(); }
-         };
+            // @abi action
+            void transferfree(account_name from, account_name to, asset quantity, string memo);
 
-         typedef eosio::multi_index<N(accounts), account> accounts;
-         typedef eosio::multi_index<N(stat), currency_stats> stats;
+            inline asset get_supply(symbol_name sym) const;
+            inline asset get_balance(account_name owner, symbol_name sym) const;
 
-         void do_issue( account_name to, asset quantity, string memom, bool pay_ram = true );
-         void do_transfer( account_name from, account_name to, asset quantity, string memo, bool pay_ram = true );
+        private:
+            // @abi table accounts i64
+            struct account {
+                asset balance;
 
-         void sub_balance( account_name owner, asset value );
-         void add_balance( account_name owner, asset value, account_name ram_payer, bool pay_ram = true );
+                uint64_t primary_key()const { return balance.symbol.name(); }
 
-      public:
-         struct transfer_args {
-            account_name  from;
-            account_name  to;
-            asset         quantity;
-            string        memo;
-         };
+                EOSLIB_SERIALIZE (account, (balance));
+            };
+
+            // @abi table stat i64
+            struct currency_stats {
+                asset supply;
+                asset max_supply;
+                account_name issuer;
+
+                uint64_t primary_key()const { return supply.symbol.name(); }
+
+                EOSLIB_SERIALIZE (currency_stats, (supply)(max_supply)(issuer));
+            };
+
+            typedef eosio::multi_index<N(accounts), account> accounts;
+            typedef eosio::multi_index<N(stat), currency_stats> stats;
+
+            void do_issue(account_name to, asset quantity, string memom, bool pay_ram = true);
+            void do_transfer(account_name from, account_name to, asset quantity, string memo, bool pay_ram = true);
+
+            void sub_balance(account_name owner, asset value);
+            void add_balance(account_name owner, asset value, account_name ram_payer, bool pay_ram = true);
+
+        public:
+            struct transfer_args {
+                account_name from;
+                account_name to;
+                asset quantity;
+                string memo;
+            };
    };
 
-   asset dextoken::get_supply( symbol_name sym )const
-   {
-      stats statstable( _self, sym );
-      const auto& st = statstable.get( sym );
+   asset dextoken::get_supply(symbol_name sym) const {
+      stats statstable(_self, sym);
+      const auto& st = statstable.get(sym);
       return st.supply;
    }
 
-   asset dextoken::get_balance( account_name owner, symbol_name sym )const
-   {
-      accounts accountstable( _self, owner );
-      const auto& ac = accountstable.get( sym );
+   asset dextoken::get_balance(account_name owner, symbol_name sym) const {
+      accounts accountstable(_self, owner);
+      const auto& ac = accountstable.get(sym);
       return ac.balance;
    }
 
